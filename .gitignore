@@ -15,13 +15,19 @@ packages/db/generated/
 
 # logs
 npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 *.log
 
 # OS
 .DS_Store
 Thumbs.db
+*.pem
 
 # editors
 .vscode/
 .idea/
 .claude/
+
+# vercel
+.vercel
