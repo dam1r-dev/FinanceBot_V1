@@ -1,0 +1,26 @@
+node_modules/
+.env
+.env.local
+*.local
+
+# build output
+dist/
+build/
+.next/
+out/
+
+# prisma
+packages/db/generated/
+
+# logs
+npm-debug.log*
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# editors
+.vscode/
+.idea/
+.claude/

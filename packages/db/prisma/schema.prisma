@@ -1,0 +1,140 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Currency {
+  KZT
+  USD
+}
+
+enum ExpenseSource {
+  TEXT
+  PHOTO
+}
+
+enum BudgetPeriod {
+  WEEKLY
+}
+
+enum HalalStatus {
+  HALAL
+  HARAM
+  DOUBTFUL
+  UNSCREENED
+}
+
+enum ReportType {
+  WEEKLY
+  ON_DEMAND
+}
+
+model User {
+  id           String   @id @default(cuid())
+  telegramId   BigInt   @unique
+  username     String?
+  firstName    String?
+  baseCurrency Currency @default(KZT)
+  timezone     String   @default("Asia/Almaty")
+  createdAt    DateTime @default(now())
+
+  expenses     Expense[]
+  budgets      Budget[]
+  goals        Goal[]
+  investments  Investment[]
+  reportLogs   ReportLog[]
+
+  @@map("users")
+}
+
+model Expense {
+  id          String        @id @default(cuid())
+  userId      String
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount      Decimal       @db.Decimal(14, 2)
+  currency    Currency      @default(KZT)
+  category    String
+  description String?
+  source      ExpenseSource @default(TEXT)
+  occurredAt  DateTime      @default(now())
+  createdAt   DateTime      @default(now())
+
+  @@index([userId, occurredAt])
+  @@index([userId, category])
+  @@map("expenses")
+}
+
+model Budget {
+  id          String       @id @default(cuid())
+  userId      String
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category    String
+  limitAmount Decimal      @db.Decimal(14, 2)
+  currency    Currency     @default(KZT)
+  period      BudgetPeriod @default(WEEKLY)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@unique([userId, category])
+  @@map("budgets")
+}
+
+model Goal {
+  id            String    @id @default(cuid())
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title         String
+  targetAmount  Decimal   @db.Decimal(14, 2)
+  currentAmount Decimal   @default(0) @db.Decimal(14, 2)
+  currency      Currency  @default(KZT)
+  deadline      DateTime?
+  completedAt   DateTime?
+  createdAt     DateTime  @default(now())
+
+  @@index([userId])
+  @@map("goals")
+}
+
+model Investment {
+  id          String       @id @default(cuid())
+  userId      String
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ticker      String
+  quantity    Decimal      @db.Decimal(18, 6)
+  avgPrice    Decimal      @db.Decimal(14, 4)
+  currency    Currency     @default(USD)
+  halalStatus HalalStatus  @default(UNSCREENED)
+  screenNotes String?
+  screenedAt  DateTime?
+  createdAt   DateTime     @default(now())
+
+  @@index([userId])
+  @@map("investments")
+}
+
+model ExchangeRate {
+  id        String   @id @default(cuid())
+  base      String
+  quote     String
+  rate      Decimal  @db.Decimal(18, 8)
+  fetchedAt DateTime @default(now())
+
+  @@unique([base, quote])
+  @@map("exchange_rates")
+}
+
+model ReportLog {
+  id          String     @id @default(cuid())
+  userId      String
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type        ReportType
+  periodStart DateTime
+  periodEnd   DateTime
+  sentAt      DateTime   @default(now())
+
+  @@index([userId, sentAt])
+  @@map("report_logs")
+}
